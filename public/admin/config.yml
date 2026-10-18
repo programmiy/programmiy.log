@@ -2,6 +2,7 @@ backend:
   name: github
   repo: programmiy/programmiy.log
   branch: main
+  auth_methods: [token]
 
 media_folder: "public/images/uploads"
 public_folder: "/programmiy.log/images/uploads"
