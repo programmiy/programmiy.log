@@ -1,0 +1,83 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { getUrl } from '../utils/url';
+
+export interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const { title, description, date, thumbnail, tags, series } = post.data;
+
+const formattedDate = new Date(date).toLocaleDateString('ko-KR', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<article class="flex flex-col sm:flex-row gap-5 pb-8 border-b border-velog-light-border dark:border-velog-dark-border group">
+  <!-- Thumbnail (if exists) -->
+  {thumbnail && (
+    <a
+      href={getUrl(`/posts/${post.slug}`)}
+      class="sm:w-56 aspect-[16/10] shrink-0 rounded-lg overflow-hidden bg-velog-light-border dark:bg-velog-dark-card border border-velog-light-border dark:border-velog-dark-border"
+    >
+      <img
+        src={thumbnail.startsWith('http') ? thumbnail : getUrl(thumbnail)}
+        alt={title}
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        loading="lazy"
+      />
+    </a>
+  )}
+
+  <!-- Post Details -->
+  <div class="flex-1 flex flex-col justify-between min-w-0">
+    <div>
+      <!-- Series Tag (if belongs to series) -->
+      {series && (
+        <a
+          href={getUrl(`/series/${encodeURIComponent(series)}`)}
+          class="inline-block text-xs font-semibold text-velog-green hover:underline mb-1.5"
+        >
+          📁 {series}
+        </a>
+      )}
+
+      <!-- Title -->
+      <h2 class="text-xl sm:text-2xl font-bold text-velog-light-text1 dark:text-velog-dark-text1 group-hover:text-velog-green dark:group-hover:text-velog-green transition-colors leading-snug">
+        <a href={getUrl(`/posts/${post.slug}`)}>
+          {title}
+        </a>
+      </h2>
+
+      <!-- Description -->
+      <p class="text-sm text-velog-light-text2 dark:text-velog-dark-text2 mt-2 line-clamp-3 leading-relaxed">
+        {description}
+      </p>
+    </div>
+
+    <!-- Meta Info (Tags & Date) -->
+    <div class="mt-4">
+      <!-- Tag Badges -->
+      {tags && tags.length > 0 && (
+        <div class="flex flex-wrap gap-1.5 mb-2.5">
+          {tags.map((tag) => (
+            <a
+              href={getUrl(`/tags/${encodeURIComponent(tag)}`)}
+              class="text-xs px-2.5 py-0.5 rounded-full bg-black/5 dark:bg-white/5 text-velog-green hover:bg-velog-green/10 dark:hover:bg-velog-green/20 font-medium transition-colors"
+            >
+              {tag}
+            </a>
+          ))}
+        </div>
+      )}
+
+      <!-- Date -->
+      <div class="text-xs text-velog-light-text3 dark:text-velog-dark-text3 font-mono">
+        {formattedDate}
+      </div>
+    </div>
+  </div>
+</article>

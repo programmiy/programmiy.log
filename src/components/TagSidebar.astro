@@ -1,0 +1,53 @@
+---
+import { getUrl } from '../utils/url';
+
+export interface Props {
+  tags: { name: string; count: number }[];
+  activeTag?: string;
+  totalPosts: number;
+}
+
+const { tags, activeTag, totalPosts } = Astro.props;
+---
+
+<aside class="w-full lg:w-48 shrink-0">
+  <!-- Desktop / Tablet Heading -->
+  <div class="hidden lg:block text-xs font-bold text-velog-light-text3 dark:text-velog-dark-text3 uppercase tracking-wider pb-3 mb-3 border-b border-velog-light-border dark:border-velog-dark-border">
+    태그 목록
+  </div>
+
+  <!-- Tag List (Mobile: horizontal scroll, Desktop: vertical list) -->
+  <ul class="flex lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-none text-sm">
+    <!-- All Tags -->
+    <li>
+      <a
+        href={getUrl('/')}
+        class={`whitespace-nowrap flex items-center justify-between px-3 py-1.5 rounded-md transition-all ${
+          !activeTag
+            ? 'bg-velog-green/10 text-velog-green font-bold dark:bg-velog-green/20'
+            : 'text-velog-light-text2 dark:text-velog-dark-text2 hover:bg-black/5 dark:hover:bg-white/5'
+        }`}
+      >
+        <span>전체보기</span>
+        <span class="ml-2 text-xs opacity-75">({totalPosts})</span>
+      </a>
+    </li>
+
+    <!-- Tag Items -->
+    {tags.map((tag) => (
+      <li>
+        <a
+          href={getUrl(`/tags/${encodeURIComponent(tag.name)}`)}
+          class={`whitespace-nowrap flex items-center justify-between px-3 py-1.5 rounded-md transition-all ${
+            activeTag === tag.name
+              ? 'bg-velog-green/10 text-velog-green font-bold dark:bg-velog-green/20'
+              : 'text-velog-light-text2 dark:text-velog-dark-text2 hover:bg-black/5 dark:hover:bg-white/5'
+          }`}
+        >
+          <span class="truncate max-w-[130px]">{tag.name}</span>
+          <span class="ml-2 text-xs opacity-75">({tag.count})</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</aside>

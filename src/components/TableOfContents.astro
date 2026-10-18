@@ -1,0 +1,97 @@
+---
+export interface Props {
+  headings: { depth: number; slug: string; text: string }[];
+}
+
+const { headings } = Astro.props;
+
+// h1, h2, h3 필터링
+const filteredHeadings = headings.filter((h) => h.depth >= 1 && h.depth <= 3);
+---
+
+{filteredHeadings.length > 0 && (
+  <nav class="hidden xl:block w-64 shrink-0 text-sm">
+    <div class="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto pl-4 border-l-2 border-velog-light-border dark:border-velog-dark-border text-velog-light-text3 dark:text-velog-dark-text3 scrollbar-none">
+      <div class="font-bold text-xs uppercase tracking-wider mb-3 text-velog-light-text2 dark:text-velog-dark-text2">
+        목차
+      </div>
+      <ul class="space-y-2">
+        {filteredHeadings.map((heading) => (
+          <li
+            class={`transition-all duration-150 ${
+              heading.depth === 1
+                ? 'font-semibold'
+                : heading.depth === 2
+                ? 'pl-2'
+                : 'pl-4 text-xs'
+            }`}
+          >
+            <a
+              href={`#${heading.slug}`}
+              data-toc-slug={heading.slug}
+              class="toc-link block py-0.5 hover:text-velog-green dark:hover:text-velog-green transition-colors leading-snug line-clamp-2"
+            >
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </nav>
+)}
+
+<script is:inline>
+  function setupTocObserver() {
+    const tocLinks = document.querySelectorAll('.toc-link');
+    if (!tocLinks.length) return;
+
+    const headingElements = [];
+    tocLinks.forEach((link) => {
+      const slug = link.getAttribute('data-toc-slug');
+      if (slug) {
+        const el = document.getElementById(slug);
+        if (el) headingElements.push(el);
+      }
+    });
+
+    if (!headingElements.length) return;
+
+    let activeSlug = '';
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            activeSlug = entry.target.id;
+          }
+        });
+
+        if (activeSlug) {
+          tocLinks.forEach((link) => {
+            const isMatch = link.getAttribute('data-toc-slug') === activeSlug;
+            if (isMatch) {
+              link.classList.add('text-velog-green', 'font-bold', 'scale-[1.03]');
+              link.classList.remove('text-velog-light-text3', 'dark:text-velog-dark-text3');
+            } else {
+              link.classList.remove('text-velog-green', 'font-bold', 'scale-[1.03]');
+              link.classList.add('text-velog-light-text3', 'dark:text-velog-dark-text3');
+            }
+          });
+        }
+      },
+      {
+        rootMargin: '0px 0px -60% 0px',
+        threshold: 0.1,
+      }
+    );
+
+    headingElements.forEach((el) => observer.observe(el));
+  }
+
+  // DOM 로드 후 실행
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupTocObserver);
+  } else {
+    setupTocObserver();
+  }
+</script>

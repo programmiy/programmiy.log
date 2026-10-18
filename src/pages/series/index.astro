@@ -1,0 +1,95 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProfileHeader from '../../components/ProfileHeader.astro';
+import { SITE_CONFIG } from '../../config';
+import { getUrl } from '../../utils/url';
+
+// draft 제외한 글들 중 series 값이 있는 글 그룹핑
+const posts = await getCollection('blog', ({ data }) => !data.draft && Boolean(data.series));
+
+const seriesMap: Record<string, CollectionEntry<'blog'>[]> = {};
+posts.forEach((post) => {
+  const s = post.data.series as string;
+  if (!seriesMap[s]) {
+    seriesMap[s] = [];
+  }
+  seriesMap[s].push(post);
+});
+
+// 각 시리즈별 메타데이터 계산
+const seriesList = Object.entries(seriesMap).map(([name, items]) => {
+  // 날짜 오름차순 정렬
+  items.sort((a, b) => new Date(a.data.date).getTime() - new Date(b.data.date).getTime());
+  const postCount = items.length;
+  // 첫 번째 글의 썸네일 (혹은 썸네일이 있는 첫 번째 글)
+  const thumbnail = items.find((p) => p.data.thumbnail)?.data.thumbnail || null;
+  // 마지막 업데이트 일자
+  const lastUpdated = items[items.length - 1].data.date;
+
+  return {
+    name,
+    postCount,
+    thumbnail,
+    lastUpdated: new Date(lastUpdated).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }),
+  };
+});
+---
+
+<BaseLayout title={`시리즈 | ${SITE_CONFIG.title}`} description="연재 시리즈 목록">
+  <ProfileHeader activeTab="series" />
+
+  <div class="mt-10">
+    {seriesList.length > 0 ? (
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {seriesList.map((series) => (
+          <a
+            href={getUrl(`/series/${encodeURIComponent(series.name)}`)}
+            class="flex flex-col rounded-xl overflow-hidden bg-white dark:bg-velog-dark-card border border-velog-light-border dark:border-velog-dark-border hover:-translate-y-1 hover:shadow-lg transition-all duration-200 group"
+          >
+            <!-- Series Thumbnail -->
+            <div class="aspect-[16/9] w-full bg-velog-light-border dark:bg-velog-dark-border overflow-hidden relative">
+              {series.thumbnail ? (
+                <img
+                  src={series.thumbnail.startsWith('http') ? series.thumbnail : getUrl(series.thumbnail)}
+                  alt={series.name}
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+              ) : (
+                <div class="w-full h-full flex items-center justify-center bg-velog-green/10 text-velog-green text-3xl font-bold font-mono">
+                  📁
+                </div>
+              )}
+            </div>
+
+            <!-- Series Info -->
+            <div class="p-5 flex-1 flex flex-col justify-between">
+              <div>
+                <h2 class="text-lg font-bold text-velog-light-text1 dark:text-velog-dark-text1 group-hover:text-velog-green transition-colors line-clamp-2 leading-snug">
+                  {series.name}
+                </h2>
+              </div>
+
+              <div class="mt-4 pt-3 border-t border-velog-light-border dark:border-velog-dark-border flex items-center justify-between text-xs text-velog-light-text3 dark:text-velog-dark-text3">
+                <span class="font-semibold text-velog-green">
+                  {series.postCount}개의 포스트
+                </span>
+                <span>마지막 업데이트 {series.lastUpdated}</span>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-20 text-velog-light-text3 dark:text-velog-dark-text3">
+        <p class="text-lg font-semibold">아직 작성된 시리즈가 없습니다.</p>
+        <p class="text-sm mt-1">포스트에 series 메타데이터를 추가하면 자동으로 모아집니다.</p>
+      </div>
+    )}
+  </div>
+</BaseLayout>

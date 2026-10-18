@@ -1,0 +1,75 @@
+---
+// Shiki 코드 블록 복사 버튼 및 언어 배지 주입 컴포넌트
+---
+
+<script is:inline>
+  function enhanceCodeBlocks() {
+    const preBlocks = document.querySelectorAll('.prose pre');
+
+    preBlocks.forEach((pre) => {
+      // 이미 주입된 경우 건너뜀
+      if (pre.querySelector('.code-copy-btn')) return;
+
+      const code = pre.querySelector('code');
+      if (!code) return;
+
+      // 언어 클래스 감지 (e.g. language-js, language-python)
+      let lang = 'text';
+      const classNames = code.className || pre.className || '';
+      const match = classNames.match(/language-(\w+)/);
+      if (match && match[1]) {
+        lang = match[1];
+      }
+
+      // 언어 라벨 배지 생성
+      const badge = document.createElement('span');
+      badge.className = 'code-lang-badge';
+      badge.textContent = lang;
+      pre.appendChild(badge);
+
+      // 복사 버튼 생성
+      const copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.className = 'code-copy-btn';
+      copyBtn.innerHTML = `
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+        </svg>
+        <span>복사</span>
+      `;
+
+      copyBtn.addEventListener('click', async () => {
+        const textToCopy = code.innerText;
+        try {
+          await navigator.clipboard.writeText(textToCopy);
+          copyBtn.classList.add('copied');
+          copyBtn.innerHTML = `
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span>완료!</span>
+          `;
+          setTimeout(() => {
+            copyBtn.classList.remove('copied');
+            copyBtn.innerHTML = `
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+              </svg>
+              <span>복사</span>
+            `;
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to copy code: ', err);
+        }
+      });
+
+      pre.appendChild(copyBtn);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', enhanceCodeBlocks);
+  } else {
+    enhanceCodeBlocks();
+  }
+</script>

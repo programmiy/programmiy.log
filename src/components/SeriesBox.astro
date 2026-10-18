@@ -1,0 +1,127 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { getUrl } from '../utils/url';
+
+export interface Props {
+  seriesName: string;
+  seriesPosts: CollectionEntry<'blog'>[];
+  currentPostSlug: string;
+}
+
+const { seriesName, seriesPosts, currentPostSlug } = Astro.props;
+
+// 시리즈 내 현재 글의 인덱스 (0-based)
+const currentIndex = seriesPosts.findIndex((p) => p.slug === currentPostSlug);
+const currentNumber = currentIndex !== -1 ? currentIndex + 1 : 1;
+const totalCount = seriesPosts.length;
+
+// 이전 / 다음 글
+const prevPost = currentIndex > 0 ? seriesPosts[currentIndex - 1] : null;
+const nextPost = currentIndex < totalCount - 1 ? seriesPosts[currentIndex + 1] : null;
+---
+
+<div class="my-8 p-5 rounded-lg bg-velog-light-subBg dark:bg-velog-dark-card border border-velog-light-border dark:border-velog-dark-border shadow-sm">
+  <!-- Series Header -->
+  <div class="flex items-center justify-between pb-3 border-b border-velog-light-border dark:border-velog-dark-border">
+    <div class="flex items-center gap-2">
+      <!-- Bookmark Icon -->
+      <svg class="w-5 h-5 text-velog-green" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path>
+      </svg>
+      <a
+        href={getUrl(`/series/${encodeURIComponent(seriesName)}`)}
+        class="text-base sm:text-lg font-bold text-velog-light-text1 dark:text-velog-dark-text1 hover:text-velog-green transition-colors"
+      >
+        {seriesName}
+      </a>
+    </div>
+
+    <!-- Toggle List Button -->
+    <button
+      id="toggle-series-list-btn"
+      type="button"
+      class="text-xs font-semibold text-velog-green hover:underline flex items-center gap-1 select-none"
+    >
+      <span id="series-toggle-text">목록 보기</span>
+      <svg id="series-toggle-icon" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Collapsible Post List -->
+  <ol id="series-posts-list" class="hidden mt-4 space-y-2 text-sm pl-4 list-decimal marker:text-velog-light-text3 dark:marker:text-velog-dark-text3">
+    {seriesPosts.map((p, idx) => (
+      <li class={`leading-relaxed ${p.slug === currentPostSlug ? 'text-velog-green font-bold' : 'text-velog-light-text2 dark:text-velog-dark-text2'}`}>
+        {p.slug === currentPostSlug ? (
+          <span>{p.data.title}</span>
+        ) : (
+          <a href={getUrl(`/posts/${p.slug}`)} class="hover:text-velog-green transition-colors">
+            {p.data.title}
+          </a>
+        )}
+      </li>
+    ))}
+  </ol>
+
+  <!-- Navigation Footer (Current count + Prev/Next buttons) -->
+  <div class="flex items-center justify-between mt-3 text-xs text-velog-light-text3 dark:text-velog-dark-text3 pt-2">
+    <div>
+      <span class="font-bold text-velog-green">{currentNumber}</span> / {totalCount}
+    </div>
+
+    <div class="flex items-center gap-4">
+      {prevPost ? (
+        <a href={getUrl(`/posts/${prevPost.slug}`)} class="flex items-center gap-1 text-velog-light-text2 dark:text-velog-dark-text2 hover:text-velog-green">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+          <span>이전 포스트</span>
+        </a>
+      ) : (
+        <span class="opacity-40 flex items-center gap-1 cursor-not-allowed">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+          <span>이전 포스트</span>
+        </span>
+      )}
+
+      {nextPost ? (
+        <a href={getUrl(`/posts/${nextPost.slug}`)} class="flex items-center gap-1 text-velog-light-text2 dark:text-velog-dark-text2 hover:text-velog-green">
+          <span>다음 포스트</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </a>
+      ) : (
+        <span class="opacity-40 flex items-center gap-1 cursor-not-allowed">
+          <span>다음 포스트</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </span>
+      )}
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  const toggleBtn = document.getElementById('toggle-series-list-btn');
+  const postsList = document.getElementById('series-posts-list');
+  const toggleText = document.getElementById('series-toggle-text');
+  const toggleIcon = document.getElementById('series-toggle-icon');
+
+  toggleBtn?.addEventListener('click', () => {
+    const isHidden = postsList?.classList.contains('hidden');
+    if (isHidden) {
+      postsList?.classList.remove('hidden');
+      if (toggleText) toggleText.textContent = '목록 숨기기';
+      toggleIcon?.classList.add('rotate-180');
+    } else {
+      postsList?.classList.add('hidden');
+      if (toggleText) toggleText.textContent = '목록 보기';
+      toggleIcon?.classList.remove('rotate-180');
+    }
+  });
+</script>

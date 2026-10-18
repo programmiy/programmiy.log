@@ -1,0 +1,130 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css");
+@import url("https://fonts.googleapis.com/css2?family=Courier+Prime:wght@700&display=swap");
+@import "katex/dist/katex.min.css";
+
+.font-logo {
+  font-family: 'Courier New', 'Courier Prime', Courier, monospace !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #12b886;
+    --color-primary-hover: #20c997;
+    --color-primary-light: #e6fcf5;
+  }
+
+  html {
+    font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+    scroll-behavior: smooth;
+    word-break: break-word;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply bg-velog-light-subBg text-velog-light-text1 transition-colors duration-200;
+  }
+
+  html.dark body {
+    @apply bg-velog-dark-bg text-velog-dark-text1;
+  }
+}
+
+/* 벨로그 스타일 블록 인용구 (Blockquote) */
+.prose blockquote {
+  border-left: 4px solid #12b886 !important;
+  background-color: #f8f9fa !important;
+  padding: 1rem 1.25rem !important;
+  margin: 1.5rem 0 !important;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  font-style: normal !important;
+  color: #212529 !important;
+}
+
+html.dark .prose blockquote {
+  background-color: #1e1e1e !important;
+  color: #ececec !important;
+}
+
+/* 본문 내 이미지 가운데 정렬 및 둥근 모서리 */
+.prose img {
+  border-radius: 8px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 헤딩 앵커 */
+.heading-anchor {
+  opacity: 0;
+  margin-left: 0.5rem;
+  color: #12b886;
+  text-decoration: none;
+  transition: opacity 0.2s ease-in-out;
+}
+
+h1:hover .heading-anchor,
+h2:hover .heading-anchor,
+h3:hover .heading-anchor,
+h4:hover .heading-anchor {
+  opacity: 1;
+}
+
+/* Shiki 코드 블록 커스텀 스타일 */
+.prose pre {
+  position: relative;
+  background-color: #1e1e1e !important;
+  border-radius: 8px;
+  padding: 2.75rem 1.25rem 1.25rem !important;
+  border: 1px solid #2a2a2a;
+}
+
+/* 코드 블록 복사 버튼 */
+.code-copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #a0a0a0;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  z-index: 10;
+}
+
+.code-copy-btn:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+.code-copy-btn.copied {
+  color: #12b886;
+  border-color: #12b886;
+}
+
+/* 코드 블록 언어 표시 라벨 */
+.code-lang-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #868e96;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+  user-select: none;
+}

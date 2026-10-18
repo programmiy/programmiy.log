@@ -1,0 +1,149 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import TableOfContents from '../components/TableOfContents.astro';
+import SeriesBox from '../components/SeriesBox.astro';
+import Giscus from '../components/Giscus.astro';
+import CodeCopyEnhancer from '../components/CodeCopyEnhancer.astro';
+import { SITE_CONFIG } from '../config';
+import { getUrl } from '../utils/url';
+import type { CollectionEntry } from 'astro:content';
+
+export interface Props {
+  post: CollectionEntry<'blog'>;
+  headings: { depth: number; slug: string; text: string }[];
+  seriesPosts?: CollectionEntry<'blog'>[];
+  prevPost?: CollectionEntry<'blog'> | null;
+  nextPost?: CollectionEntry<'blog'> | null;
+}
+
+const { post, headings, seriesPosts = [], prevPost, nextPost } = Astro.props;
+const { title, description, date, thumbnail, tags, series } = post.data;
+
+const formattedDate = new Date(date).toLocaleDateString('ko-KR', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  image={thumbnail || undefined}
+  articleDate={new Date(date).toISOString()}
+>
+  <div class="relative flex justify-center gap-12 pt-6">
+    <!-- Main Content Area -->
+    <article class="flex-1 min-w-0 max-w-3xl">
+      <!-- Post Header -->
+      <header class="mb-8">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-velog-light-text1 dark:text-velog-dark-text1 tracking-tight leading-tight mb-4">
+          {title}
+        </h1>
+
+        <div class="flex items-center justify-between text-sm text-velog-light-text3 dark:text-velog-dark-text3 pb-4 border-b border-velog-light-border dark:border-velog-dark-border">
+          <div class="flex items-center gap-2">
+            <span class="font-semibold text-velog-light-text1 dark:text-velog-dark-text1">{SITE_CONFIG.author}</span>
+            <span>·</span>
+            <time datetime={new Date(date).toISOString()} class="font-mono">{formattedDate}</time>
+          </div>
+        </div>
+
+        <!-- Tags -->
+        {tags && tags.length > 0 && (
+          <div class="flex flex-wrap gap-2 mt-4">
+            {tags.map((tag) => (
+              <a
+                href={getUrl(`/tags/${encodeURIComponent(tag)}`)}
+                class="text-sm px-3 py-1 rounded-full bg-black/5 dark:bg-white/5 text-velog-green hover:bg-velog-green/10 dark:hover:bg-velog-green/20 font-medium transition-colors"
+              >
+                {tag}
+              </a>
+            ))}
+          </div>
+        )}
+      </header>
+
+      <!-- Series Box (if belongs to a series) -->
+      {series && seriesPosts.length > 0 && (
+        <SeriesBox
+          seriesName={series}
+          seriesPosts={seriesPosts}
+          currentPostSlug={post.slug}
+        />
+      )}
+
+      <!-- Main Markdown Body -->
+      <div class="prose prose-lg dark:prose-invert max-w-none text-velog-light-text1 dark:text-velog-dark-text1">
+        <slot />
+      </div>
+
+      <!-- Post Author Profile Card -->
+      <div class="mt-16 p-6 rounded-xl bg-velog-light-subBg dark:bg-velog-dark-card border border-velog-light-border dark:border-velog-dark-border flex items-center gap-5">
+        <div class="w-16 h-16 rounded-full overflow-hidden bg-velog-green/10 flex items-center justify-center shrink-0 border border-velog-light-border dark:border-velog-dark-border">
+          <span class="text-2xl font-extrabold text-velog-green font-mono uppercase">
+            {SITE_CONFIG.author.slice(0, 2)}
+          </span>
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="text-lg font-bold text-velog-light-text1 dark:text-velog-dark-text1">
+            {SITE_CONFIG.author}
+          </div>
+          <div class="text-sm text-velog-light-text2 dark:text-velog-dark-text2 mt-1">
+            {SITE_CONFIG.bio}
+          </div>
+        </div>
+      </div>
+
+      <!-- Previous / Next Post Navigation Cards -->
+      <nav class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {prevPost ? (
+          <a
+            href={getUrl(`/posts/${prevPost.slug}`)}
+            class="p-4 rounded-lg bg-velog-light-subBg dark:bg-velog-dark-card border border-velog-light-border dark:border-velog-dark-border hover:border-velog-green dark:hover:border-velog-green transition-colors group flex flex-col justify-between"
+          >
+            <div class="text-xs text-velog-light-text3 dark:text-velog-dark-text3 flex items-center gap-1 mb-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+              <span>이전 포스트</span>
+            </div>
+            <div class="font-bold text-sm text-velog-light-text1 dark:text-velog-dark-text1 group-hover:text-velog-green transition-colors line-clamp-2">
+              {prevPost.data.title}
+            </div>
+          </a>
+        ) : (
+          <div></div>
+        )}
+
+        {nextPost ? (
+          <a
+            href={getUrl(`/posts/${nextPost.slug}`)}
+            class="p-4 rounded-lg bg-velog-light-subBg dark:bg-velog-dark-card border border-velog-light-border dark:border-velog-dark-border hover:border-velog-green dark:hover:border-velog-green transition-colors group flex flex-col justify-between text-right"
+          >
+            <div class="text-xs text-velog-light-text3 dark:text-velog-dark-text3 flex items-center justify-end gap-1 mb-1">
+              <span>다음 포스트</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </div>
+            <div class="font-bold text-sm text-velog-light-text1 dark:text-velog-dark-text1 group-hover:text-velog-green transition-colors line-clamp-2">
+              {nextPost.data.title}
+            </div>
+          </a>
+        ) : (
+          <div></div>
+        )}
+      </nav>
+
+      <!-- Giscus Comments -->
+      <Giscus />
+    </article>
+
+    <!-- Sticky Floating Table of Contents -->
+    <TableOfContents headings={headings} />
+  </div>
+
+  <!-- Shiki Code Block Copy Button Script -->
+  <CodeCopyEnhancer />
+</BaseLayout>

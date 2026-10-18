@@ -1,0 +1,39 @@
+---
+import { SITE_CONFIG } from '../config';
+
+const { giscus } = SITE_CONFIG;
+const isConfigured = Boolean(giscus.repo && giscus.repoId && giscus.categoryId);
+---
+
+<div class="mt-12 pt-8 border-t border-velog-light-border dark:border-velog-dark-border">
+  {isConfigured ? (
+    <div id="giscus-container">
+      <script
+        is:inline
+        src="https://giscus.app/client.js"
+        data-repo={giscus.repo}
+        data-repo-id={giscus.repoId}
+        data-category={giscus.category}
+        data-category-id={giscus.categoryId}
+        data-mapping={giscus.mapping}
+        data-strict="0"
+        data-reactions-enabled={giscus.reactionsEnabled}
+        data-emit-metadata={giscus.emitMetadata}
+        data-input-position={giscus.inputPosition}
+        data-theme="preferred_color_scheme"
+        data-lang={giscus.lang}
+        crossorigin="anonymous"
+        async
+      ></script>
+    </div>
+  ) : (
+    <div class="p-6 rounded-lg bg-velog-light-subBg dark:bg-velog-dark-card border border-dashed border-velog-light-border dark:border-velog-dark-border text-center text-sm text-velog-light-text3 dark:text-velog-dark-text3">
+      <p class="font-semibold text-velog-light-text2 dark:text-velog-dark-text2 mb-1">
+        💬 댓글 (Giscus) 연동 안내
+      </p>
+      <p>
+        GitHub Discussions 댓글을 활성화하려면 <code class="px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/5 font-mono text-xs">src/config.ts</code>의 giscus 설정을 입력해 주세요.
+      </p>
+    </div>
+  )}
+</div>

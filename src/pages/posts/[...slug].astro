@@ -1,0 +1,57 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import PostLayout from '../../layouts/PostLayout.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+
+  // 날짜 오름차순 정렬 (이전/다음 글 순서용)
+  const sortedByDateAsc = [...posts].sort(
+    (a, b) => new Date(a.data.date).getTime() - new Date(b.data.date).getTime()
+  );
+
+  return sortedByDateAsc.map((post, index) => {
+    // 같은 시리즈 글들 (seriesOrder 또는 작성일 오름차순)
+    const seriesPosts = post.data.series
+      ? sortedByDateAsc
+          .filter((p) => p.data.series === post.data.series)
+          .sort((a, b) => {
+            if (a.data.seriesOrder != null && b.data.seriesOrder != null) {
+              return a.data.seriesOrder - b.data.seriesOrder;
+            }
+            return new Date(a.data.date).getTime() - new Date(b.data.date).getTime();
+          })
+      : [];
+
+    return {
+      params: { slug: post.slug },
+      props: {
+        post,
+        seriesPosts,
+        prevPost: index > 0 ? sortedByDateAsc[index - 1] : null,
+        nextPost: index < sortedByDateAsc.length - 1 ? sortedByDateAsc[index + 1] : null,
+      },
+    };
+  });
+}
+
+export interface Props {
+  post: CollectionEntry<'blog'>;
+  seriesPosts: CollectionEntry<'blog'>[];
+  prevPost: CollectionEntry<'blog'> | null;
+  nextPost: CollectionEntry<'blog'> | null;
+}
+
+const { post, seriesPosts, prevPost, nextPost } = Astro.props;
+const { Content, headings } = await post.render();
+---
+
+<PostLayout
+  post={post}
+  headings={headings}
+  seriesPosts={seriesPosts}
+  prevPost={prevPost}
+  nextPost={nextPost}
+>
+  <Content />
+</PostLayout>

@@ -1,0 +1,102 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE_CONFIG } from '../../config';
+import { getUrl } from '../../utils/url';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft && Boolean(data.series));
+
+  const seriesMap: Record<string, CollectionEntry<'blog'>[]> = {};
+  posts.forEach((post) => {
+    const s = post.data.series as string;
+    if (!seriesMap[s]) seriesMap[s] = [];
+    seriesMap[s].push(post);
+  });
+
+  return Object.entries(seriesMap).map(([seriesName, seriesPosts]) => {
+    // 순서 정렬 (seriesOrder 우선, 없으면 date 오름차순)
+    const sorted = seriesPosts.sort((a, b) => {
+      if (a.data.seriesOrder != null && b.data.seriesOrder != null) {
+        return a.data.seriesOrder - b.data.seriesOrder;
+      }
+      return new Date(a.data.date).getTime() - new Date(b.data.date).getTime();
+    });
+
+    return {
+      params: { series: seriesName },
+      props: {
+        seriesName,
+        posts: sorted,
+      },
+    };
+  });
+}
+
+export interface Props {
+  seriesName: string;
+  posts: CollectionEntry<'blog'>[];
+}
+
+const { seriesName, posts } = Astro.props;
+---
+
+<BaseLayout
+  title={`${seriesName} | 시리즈`}
+  description={`${seriesName} 시리즈의 전체 글 목록`}
+>
+  <div class="max-w-3xl mx-auto py-8">
+    <!-- Back to Series link -->
+    <a
+      href={getUrl('/series')}
+      class="inline-flex items-center gap-1.5 text-sm font-semibold text-velog-green hover:underline mb-6"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      <span>모든 시리즈 보기</span>
+    </a>
+
+    <!-- Series Header -->
+    <header class="mb-10 pb-6 border-b border-velog-light-border dark:border-velog-dark-border">
+      <div class="text-xs font-bold text-velog-green uppercase tracking-wider mb-2">SERIES</div>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-velog-light-text1 dark:text-velog-dark-text1">
+        {seriesName}
+      </h1>
+      <p class="text-sm text-velog-light-text3 dark:text-velog-dark-text3 mt-3">
+        총 <span class="font-bold text-velog-green">{posts.length}</span>개의 포스트
+      </p>
+    </header>
+
+    <!-- Ordered Post List -->
+    <ol class="space-y-6">
+      {posts.map((post, index) => (
+        <li class="flex gap-4 p-4 rounded-xl bg-white dark:bg-velog-dark-card border border-velog-light-border dark:border-velog-dark-border hover:border-velog-green dark:hover:border-velog-green transition-colors group">
+          <!-- Order Number -->
+          <span class="w-8 h-8 rounded-full bg-velog-green/10 text-velog-green flex items-center justify-center font-bold text-sm shrink-0 font-mono">
+            {index + 1}
+          </span>
+
+          <!-- Content -->
+          <div class="flex-1 min-w-0">
+            <h2 class="text-lg font-bold text-velog-light-text1 dark:text-velog-dark-text1 group-hover:text-velog-green transition-colors line-clamp-2">
+              <a href={getUrl(`/posts/${post.slug}`)}>
+                {post.data.title}
+              </a>
+            </h2>
+            <p class="text-sm text-velog-light-text2 dark:text-velog-dark-text2 mt-1 line-clamp-2">
+              {post.data.description}
+            </p>
+            <div class="text-xs text-velog-light-text3 dark:text-velog-dark-text3 mt-2 font-mono">
+              {new Date(post.data.date).toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</BaseLayout>
