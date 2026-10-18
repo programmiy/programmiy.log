@@ -1,5 +1,6 @@
 ---
 import { SITE_CONFIG } from '../config';
+import { getUrl } from '../utils/url';
 
 export interface Props {
   title?: string;
@@ -22,7 +23,7 @@ const formattedTitle = title === SITE_CONFIG.title ? title : `${title} | ${SITE_
 <!-- Global Metadata -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" type="image/svg+xml" href={getUrl('/favicon.svg')} />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@700&family=Fira+Mono:wght@700&display=swap" rel="stylesheet" />
@@ -42,14 +43,14 @@ const formattedTitle = title === SITE_CONFIG.title ? title : `${title} | ${SITE_
 <meta property="og:url" content={Astro.url} />
 <meta property="og:title" content={formattedTitle} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={new URL(image, Astro.url)} />
+<meta property="og:image" content={image.startsWith('http') ? image : new URL(getUrl(image), Astro.site || Astro.url)} />
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content={Astro.url} />
 <meta property="twitter:title" content={formattedTitle} />
 <meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={new URL(image, Astro.url)} />
+<meta property="twitter:image" content={image.startsWith('http') ? image : new URL(getUrl(image), Astro.site || Astro.url)} />
 
 {articleDate && <meta property="article:published_time" content={articleDate} />}
 

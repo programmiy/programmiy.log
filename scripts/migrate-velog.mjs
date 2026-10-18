@@ -138,13 +138,13 @@ async function runMigration() {
     const data = { ...parsed.data };
     let body = parsed.content;
 
-    // 본문 내 이미지 경로 치환: /images/xxx -> /programmiy.log/images/uploads/velog/xxx
-    body = body.replace(/!\[([^\]]*)\]\((?:\.\/|\/)?(?:programmiy\.log\/)?images\/([^)]+)\)/g, '![$1](/programmiy.log/images/uploads/velog/$2)');
-    body = body.replace(/<img([^>]+)src=["'](?:\.\/|\/)?(?:programmiy\.log\/)?images\/([^"']+)["']/gi, '<img$1src="/programmiy.log/images/uploads/velog/$2"');
+    // 본문 내 이미지 경로 치환: /images/xxx -> /programmiy.log/images/uploads/velog/xxx (이미 치환된 경우 제외)
+    body = body.replace(/!\[([^\]]*)\]\((?:\.\/|\/)?(?:programmiy\.log\/)?images\/(?!uploads\/velog\/)([^)]+)\)/g, '![$1](/programmiy.log/images/uploads/velog/$2)');
+    body = body.replace(/<img([^>]+)src=["'](?:\.\/|\/)?(?:programmiy\.log\/)?images\/(?!uploads\/velog\/)([^"']+)["']/gi, '<img$1src="/programmiy.log/images/uploads/velog/$2"');
 
     // 썸네일 경로도 동일하게 치환
     if (data.thumbnail && typeof data.thumbnail === 'string') {
-      data.thumbnail = data.thumbnail.replace(/^(?:\.\/|\/)?(?:programmiy\.log\/)?images\//, '/programmiy.log/images/uploads/velog/');
+      data.thumbnail = data.thumbnail.replace(/^(?:\.\/|\/)?(?:programmiy\.log\/)?images\/(?!uploads\/velog\/)/, '/programmiy.log/images/uploads/velog/');
     }
 
     // 썸네일 부재 시 본문 첫 이미지로 자동 설정
